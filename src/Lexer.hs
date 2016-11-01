@@ -20,6 +20,8 @@ data Token
   | TypeEquals
   | TypeOr
   | TypeSignature
+  | LambdaStart
+  | Arrow
   | Let
   | Semicolon
   deriving (Show)
@@ -90,6 +92,12 @@ typeEquals = TypeEquals <$ string ":="
 
 typeOr :: Parser Token
 typeOr = TypeOr <$ string "|"
+
+lambdaStart :: Parser Token
+lambdaStart = LambdaStart <$ string "\\"
+
+arrow :: Parser Token
+arrow = Arrow <$ string "->"
 
 semicolon :: Parser Token
 semicolon = Semicolon <$ string ";"
