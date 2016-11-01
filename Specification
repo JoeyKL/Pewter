@@ -1,0 +1,8 @@
+The Pewter Programming Language Specification
+=============================================
+
+expr := identifier | expr expr | integerLiteral | lambda | let-clause | "(" expr ")"
+
+lambda := "\" identifier+ "->" expr
+let-clause := "{" let-statement+ expr "}"
+let-statement := "let" identifier "=" expr ";"
