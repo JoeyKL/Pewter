@@ -14,10 +14,8 @@ import           Text.Megaparsec.Text
 data Token
   = Identifier T.Text
   | IntegerLiteral Integer
-  | OpenParen
-  | CloseParen
-  | OpenBrace
-  | CloseBrace
+  | Paren BracketKind
+  | Brace BracketKind
   | Equals
   | TypeEquals
   | TypeOr
@@ -25,6 +23,12 @@ data Token
   | Let
   | Semicolon
   deriving (Show)
+
+data BracketKind
+  = Open
+  | Close
+  deriving (Show)
+
 
 main :: T.Text -> CompilerResult [Token]
 main source = case parse lexer "Input file" source of
@@ -70,16 +74,16 @@ equals :: Parser Token
 equals =  Equals <$ string "="
 
 openParen :: Parser Token
-openParen =  OpenParen <$ string "("
+openParen =  Paren Open <$ string "("
 
 closeParen :: Parser Token
-closeParen =  CloseParen <$ string ")"
+closeParen =  Paren Close <$ string ")"
 
 openBrace :: Parser Token
-openBrace =  OpenBrace <$ string "{"
+openBrace =  Brace Open <$ string "{"
 
 closeBrace :: Parser Token
-closeBrace =  CloseBrace <$ string "}"
+closeBrace =  Brace Close <$ string "}"
 
 typeEquals :: Parser Token
 typeEquals = TypeEquals <$ string ":="
