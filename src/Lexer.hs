@@ -1,5 +1,6 @@
 module Lexer where
 
+import           Main
 import qualified Data.Text             as T
 import           Text.Megaparsec
 import           Text.Megaparsec.Expr
@@ -12,6 +13,12 @@ data Token
   | Equals
   | TypeEquals
   | TypeOr
+  | TypeSignature
+  | Let
+  | In
   | EndOfLine
 
 lex :: T.Text -> CompilerError [Token]
+lex = undefined
+
+whitespace = L.space
