@@ -34,7 +34,7 @@ data BracketKind
 
 main :: T.Text -> CompilerResult [Token]
 main source = case parse lexer "Input file" source of
-  Left err     -> Failure (Error.ParseError err)
+  Left err     -> Failure (Error.LexError err)
   Right result -> Success result
 
 lexer :: Parser [Token]

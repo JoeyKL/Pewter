@@ -8,5 +8,5 @@ data CompilerResult a
   deriving (Show)
 
 data CompilerError
-  = ParseError (Parsec.ParseError Char Dec)
+  = LexError (Parsec.ParseError Char Dec)
   deriving (Show)
