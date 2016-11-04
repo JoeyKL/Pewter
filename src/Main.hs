@@ -1,14 +1,14 @@
 module Main where
 
 import qualified Data.Text as T
-import           Error     as Error
-import           Lexer     as Lexer
+import qualified Error
+import qualified Lexer
+import qualified Parser
 
 main :: IO ()
 main = putStrLn "Yes, this the Pewter compiler, no, it doesn't work yet."
 
-compile :: T.Text -> Error.CompilerResult T.Text
-compile =
-  Lexer.lex >=>
-  Parser.parse >=>
-  undefined
+compile :: T.Text -> Error.CompilerResult [Parser.Declaration]
+compile source = do
+  tokens <- Lexer.main source
+  Parser.main tokens

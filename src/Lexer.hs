@@ -10,26 +10,7 @@ import           Text.Megaparsec.Char
 import           Text.Megaparsec.Expr
 import qualified Text.Megaparsec.Lexer as L
 import           Text.Megaparsec.Text
-
-data Token
-  = Identifier T.Text
-  | IntegerLiteral Integer
-  | Paren BracketKind
-  | Brace BracketKind
-  | Equals
-  | TypeEquals
-  | TypeOr
-  | TypeSignature
-  | LambdaStart
-  | Arrow
-  | Let
-  | Semicolon
-  deriving (Show, Eq)
-
-data BracketKind
-  = Open
-  | Close
-  deriving (Show, Eq)
+import           Token
 
 main :: T.Text -> CompilerResult [Token]
 main source = case parse lexer "Input file" source of
@@ -91,6 +72,9 @@ typeEquals = TypeEquals <$ string ":="
 
 typeOr :: Parser Token
 typeOr = TypeOr <$ string "|"
+
+typeSignature :: Parser Token
+typeSignature = TypeSignature <$ string ":"
 
 lambdaStart :: Parser Token
 lambdaStart = LambdaStart <$ string "\\"
