@@ -1,8 +1,17 @@
 The Pewter Programming Language Specification
 =============================================
 
-expr := identifier | expr expr | integerLiteral | lambda | let-clause | "(" expr ")"
+expr := value-identifier | expr expr | integer-literal | lambda | let-clause | "(" expr ")"
 
-lambda := "\" identifier+ "->" expr
+lambda := "\" value-identifier+ "->" expr
 let-clause := "{" let-statement+ expr "}"
-let-statement := "let" identifier "=" expr ";"
+let-statement := "let" value-identifier "=" expr ";"
+
+type := type-identifier | generic-identifier | type type | '(' type ')'
+
+declaration := value-declaration | type-declaration | type-signature-declaration ';'
+value-declaration := value-identifier+ '=' expr
+type-declaration :=
+  type-identifier generic-identifier* ':=' (constructor '|')* constructor
+constructor := constructor-identifier type*
+type-signature-declaration := value-identifier ':' type
