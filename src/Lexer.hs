@@ -1,4 +1,4 @@
-module Pewter.Lexer where
+module Lexer where
 
 import           Control.Monad         (void)
 import           Data.Functor
@@ -24,13 +24,12 @@ data Token
   | Arrow
   | Let
   | Semicolon
-  deriving (Show)
+  deriving (Show, Eq)
 
 data BracketKind
   = Open
   | Close
-  deriving (Show)
-
+  deriving (Show, Eq)
 
 main :: T.Text -> CompilerResult [Token]
 main source = case parse lexer "Input file" source of
