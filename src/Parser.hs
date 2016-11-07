@@ -10,6 +10,7 @@ import qualified Error
 import           Text.Megaparsec            (many, parse)
 import qualified Text.Megaparsec            as Megaparsec
 import           Text.Megaparsec.Combinator (between, choice, endBy, manyTill)
+import           Text.Megaparsec.Expr
 import qualified Text.Megaparsec.Prim       as Prim
 import qualified Token
 
@@ -94,10 +95,10 @@ typeDeclaration = do
   return $ TypeDeclaration name typeParams (firstConstructor:extraConstructors)
 
 typeExpr :: Parser TypeExpr
-typeExpr = choice
+typeExpr = makeExprParser (choice
   [TypeApplication <$> typeExpr <*> typeExpr
   ,TypeVariable <$> identifier
-  ]
+  ]) [[InfixL (return TypeApplication)]]
 
 constructor :: Parser TypeConstructor
 constructor = do
@@ -113,13 +114,12 @@ typeSignatureDeclaration = do
   return $ TypeSignatureDeclaration name typeOfValue
 
 expr :: Parser Expr
-expr = choice
+expr = makeExprParser (choice
   [lambda
-  ,application
   ,variable
   ,letClause
   ,expr `enclosedBy` Token.Paren
-  ]
+  ]) [[InfixL (return Application)]]
 
 enclosedBy :: Parser a -> (Token.BracketKind -> Token.Token) -> Parser a
 enclosedBy parser bracket = between (match $ bracket Token.Open) (match $ bracket Token.Close) parser
