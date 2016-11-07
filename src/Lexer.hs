@@ -18,7 +18,10 @@ main source = case parse lexer "Input file" source of
   Right result -> Success result
 
 lexer :: Parser [Token]
-lexer = many (lexeme token)
+lexer = do
+  tokens <- many (lexeme token)
+  eof
+  return tokens
 
 blank = void spaceChar
 lineComment = L.skipLineComment "//"
@@ -41,6 +44,9 @@ token = choice
   ,closeBrace
   ,typeEquals
   ,typeOr
+  ,typeSignature
+  ,lambdaStart
+  ,arrow
   ,semicolon
   ]
 
