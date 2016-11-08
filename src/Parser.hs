@@ -4,17 +4,22 @@
 
 module Parser where
 
-import qualified Data.Set                   as E
+import           Data.List.NonEmpty
+import qualified Data.Set                   as Set
 import qualified Data.Text                  as T
 import qualified Error
 import           Text.Megaparsec            (many, parse)
 import qualified Text.Megaparsec            as Megaparsec
 import           Text.Megaparsec.Combinator (between, choice, endBy, manyTill)
+import           Text.Megaparsec.Error
 import           Text.Megaparsec.Expr
 import qualified Text.Megaparsec.Prim       as Prim
+import           Token                      (SourceToken (..))
 import qualified Token
 
-type Parser a = Megaparsec.Parsec Megaparsec.Dec [Token.Token] a
+type Parser a = Megaparsec.Parsec Megaparsec.Dec [SourceToken] a
+
+data Program = Program [Declaration]
 
 data Declaration
   = ValueDeclaration Identifier Expr
@@ -42,32 +47,34 @@ data LetStatement = LetStatement Identifier Expr
 data Identifier = Identifier T.Text
   deriving (Show)
 
-instance Prim.Stream [Token.Token] where
-  type Token [Token.Token] = Token.Token
+instance Prim.Stream [SourceToken] where
+  type Token [SourceToken] = SourceToken
 
   uncons (t:ts) = Just (t, ts)
   uncons []     = Nothing
 
-  updatePos _ _ _ _ = (Megaparsec.initialPos "fuk u no err msg",Megaparsec.initialPos "fuk u no err msg")
+  updatePos _ _ _ (SourceToken _ indexes) = indexes
 
 match :: Token.Token -> Parser Token.Token
-match t = satisfy (\x -> if x == t then Just x else Nothing)
+match expected = satisfy (\token ->
+    if token == expected then Just token else Nothing
+  )
 
 satisfy :: (Token.Token -> Maybe a) -> Parser a
-satisfy f = Prim.token testChar Nothing
+satisfy f = Prim.token testToken Nothing
   where
-    testChar x =
-      case f x of
+    testToken sourceToken@(SourceToken token _) =
+      case f token of
         Just y  -> Right y
-        Nothing -> Left (E.empty, E.empty, E.empty)
+        Nothing -> Left (Set.singleton (Tokens (sourceToken:|[])), Set.empty, Set.empty)
 
-main :: [Token.Token] -> Error.CompilerResult [Declaration]
+main :: [SourceToken] -> Error.CompilerResult Program
 main source = case parse program "Input tokens" source of
   Left err     -> Error.Failure (Error.ParseError err)
   Right result -> Error.Success result
 
-program :: Parser [Declaration]
-program = many declaration
+program :: Parser Program
+program = Program <$> many declaration
 
 declaration :: Parser Declaration
 declaration = do

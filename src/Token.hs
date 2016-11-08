@@ -1,6 +1,10 @@
 module Token where
 
 import           Data.Text
+import           Text.Megaparsec.Pos
+
+data SourceToken = SourceToken Token (SourcePos, SourcePos)
+  deriving (Show, Eq, Ord)
 
 data Token
   = Identifier Text

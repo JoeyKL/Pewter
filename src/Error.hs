@@ -3,7 +3,7 @@
 module Error where
 
 import           Text.Megaparsec.Error as Parsec
-import qualified Token
+import           Token                 (SourceToken)
 
 data CompilerResult a
   = Success a
@@ -12,7 +12,7 @@ data CompilerResult a
 
 data CompilerError
   = LexError (Parsec.ParseError Char Dec)
-  | ParseError (Parsec.ParseError Token.Token Dec)
+  | ParseError (Parsec.ParseError SourceToken Dec)
   deriving (Show)
 
 instance Applicative CompilerResult where
