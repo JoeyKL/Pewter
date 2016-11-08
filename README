@@ -8,23 +8,14 @@ Language Goals
 
 The language should:
 
-* be based on a small, consistent set of philosophical underpinnings, and eschew
-  primitive implementations whenever possible.
-* be general purpose, appropriate for any programming task.  
-* be easily understood and written, both to those unfamiliar with the language
-  and to those new to programming in general, and especially to those familiar
-  with popular C-family languages such as C++, Java, and Swift.  
-* be purely functional, with managed effects based on monads, and zero runtime
-  exceptions (bar ones encoded into the type system).  
-* encourage the programmer to program in a pure functional style as often as is
-  appropriate.  
-* allow the programmer to easily program in an object oriented style when
-  appropriate.  
-* allow and encourage the programmer to solve simple problems in the most
-  intuitive way when there is no real benefit to more convoluted solutions.  
-* have an extremely powerful and robust type system that serves the programmer
-  and the tools that the programmer uses.  
-* be type inferred, and have a type system that is simple to understand and
-  unobtrusive.  
-* have helpful, human readable error messages.  
-* provide a powerful, safe, familiar, modular, enjoyable programming experience.  
+* be based on a small, consistent set of philosophical underpinnings, and eschew primitive implementations whenever possible.
+* be general purpose, appropriate for any programming task.
+* be easily understood and written, both to those unfamiliar with the language and to those new to programming in general, and especially to those familiar with popular C-family languages such as C++, Java, and Swift.
+* be purely functional, with managed effects based on monads, and zero runtime exceptions (bar ones encoded into the type system).
+* encourage the programmer to program in a pure functional style as often as is appropriate.
+* allow the programmer to easily program in an object oriented style when appropriate.
+* allow and encourage the programmer to solve simple problems in the most intuitive way when there is no real benefit to more convoluted solutions.
+* have an extremely powerful and robust type system that serves the programmer and the tools that the programmer uses.
+* be type inferred, and have a type system that is simple to understand and unobtrusive.
+* have helpful, human readable error messages.
+* provide a powerful, safe, familiar, modular, enjoyable programming experience.
