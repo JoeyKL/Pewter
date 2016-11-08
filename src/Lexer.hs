@@ -12,13 +12,14 @@ import qualified Text.Megaparsec.Lexer as L
 import           Text.Megaparsec.Text
 import           Token
 
-main :: T.Text -> CompilerResult [Token]
+main :: T.Text -> CompilerResult [SourceToken]
 main source = case parse lexer "Input file" source of
   Left err     -> Failure (Error.LexError err)
   Right result -> Success result
 
-lexer :: Parser [Token]
+lexer :: Parser [SourceToken]
 lexer = do
+  whitespace
   tokens <- many (lexeme token)
   eof
   return tokens
@@ -33,22 +34,28 @@ whitespace = L.space blank lineComment blockComment
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme whitespace
 
-token :: Parser Token
-token = choice
-  [word
-  ,integerLiteral
-  ,equals
-  ,openParen
-  ,closeParen
-  ,openBrace
-  ,closeBrace
-  ,typeEquals
-  ,typeOr
-  ,typeSignature
-  ,lambdaStart
-  ,arrow
-  ,semicolon
-  ]
+token :: Parser SourceToken
+token = do
+  startPos <- getPosition
+  token <- getToken
+  endPos <- getPosition
+  return $ SourceToken token (startPos, endPos)
+    where
+      getToken = choice
+        [word
+        ,integerLiteral
+        ,equals
+        ,openParen
+        ,closeParen
+        ,openBrace
+        ,closeBrace
+        ,typeEquals
+        ,typeOr
+        ,typeSignature
+        ,lambdaStart
+        ,arrow
+        ,semicolon
+        ]
 
 word :: Parser Token
 word = reservedWords <$> parseWord where
