@@ -13,6 +13,7 @@ data CompilerResult a
 data CompilerError
   = LexError (Parsec.ParseError Char Dec)
   | ParseError (Parsec.ParseError SourceToken Dec)
+  | NoMain
   deriving (Show)
 
 instance Applicative CompilerResult where
