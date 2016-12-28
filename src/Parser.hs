@@ -30,8 +30,10 @@ data Declaration
 data TypeConstructor = TypeConstructor Identifier [TypeExpr]
   deriving (Show)
 
-
-data TypeExpr = TypeVariable Identifier | TypeApplication TypeExpr TypeExpr
+data TypeExpr
+  = TypeVariable Identifier
+  | TypeApplication TypeExpr TypeExpr
+  | Function TypeExpr TypeExpr
   deriving (Show)
 
 data Expr
@@ -44,8 +46,7 @@ data Expr
 data LetStatement = LetStatement Identifier Expr
   deriving (Show)
 
-data Identifier = Identifier T.Text
-  deriving (Show)
+type Identifier = T.Text
 
 instance Prim.Stream [SourceToken] where
   type Token [SourceToken] = SourceToken
@@ -135,7 +136,7 @@ application :: Parser Expr
 application = Application <$> expr <*> expr
 
 identifier :: Parser Identifier
-identifier = Identifier <$> satisfy validate
+identifier = satisfy validate
   where
     validate x = case x of
       Token.Identifier text -> Just text

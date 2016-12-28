@@ -2,6 +2,7 @@
 
 module Error where
 
+import           Data.Text
 import           Text.Megaparsec.Error as Parsec
 import           Token                 (SourceToken)
 
@@ -13,6 +14,9 @@ data CompilerResult a
 data CompilerError
   = LexError (Parsec.ParseError Char Dec)
   | ParseError (Parsec.ParseError SourceToken Dec)
+  | DuplicateDeclaration Text
+  | MissingDefinition
+  | RecursiveDefinitions
   | NoMain
   deriving (Show)
 
