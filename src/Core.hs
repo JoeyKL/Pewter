@@ -28,19 +28,37 @@ data Expr
   = Lambda Name Expr
   | Application Expr Expr
   | Variable Name
-  | Typed Expr Type
+  | Typed Expr PolyType
   deriving (Show)
 
-data Type
+data MonoType
   = TypeVariable Name
-  | TypeApplication Type Type
-  | Function Type Type
+  | TypeBuiltin Name
+  | TypeApplication MonoType MonoType
+  | Function MonoType MonoType
+  | Product MonoType MonoType
+  | Sum MonoType MonoType
   deriving (Show)
+
+data PolyType = Forall (Set Name) MonoType
+  deriving (Show)
+
+instance Free MonoType where
+  freeVariables = \case
+    TypeVariable v -> S.singleton v
+    TypeBuiltin _ -> S.empty
+    Function d r -> freeVariables d <> freeVariables r
+    Product a b -> freeVariables a <> freeVariables b
+    Sum a b -> freeVariables a <> freeVariables b
+
+instance Free PolyType where
+  freeVariables (Forall names monoType) =
+    S.difference (freeVariables monoType) names
+
+data Definition = Definition Name Expr
 
 class Free f where
   freeVariables :: f -> Set Name
-
-data Definition = Definition Name Expr
 
 instance Free Expr where
   freeVariables = \case
@@ -95,14 +113,14 @@ decsToDefs (Parser.Program decs) = do
   decs <- foldM (flip addDec) M.empty decs
   mapM normalize decs
   where
-    normalize :: Either Expr [Type] -> CompilerResult Expr
+    normalize :: Either Expr [PolyType] -> CompilerResult Expr
     normalize (Left expr) = Success expr
     normalize (Right _)   = Failure MissingDefinition
 
-applyTypes :: [Type] -> Expr -> Expr
+applyTypes :: [PolyType] -> Expr -> Expr
 applyTypes ts e = L.foldr (flip Typed) e ts
 
-addDec :: Parser.Declaration -> Map Name (Either Expr [Type]) -> CompilerResult (Map Name (Either Expr [Type]))
+addDec :: Parser.Declaration -> Map Name (Either Expr [PolyType]) -> CompilerResult (Map Name (Either Expr [PolyType]))
 addDec (Parser.ValueDeclaration name expr) defs =
   case M.lookup name defs of
     Just (Left _)   -> Failure (DuplicateDeclaration name)
@@ -125,11 +143,13 @@ expression = \case
     Application (Lambda id (expression (Parser.LetClause sts e2))) (expression e1)
   Parser.LetClause [] e2 -> expression e2
 
-convertType :: Parser.TypeExpr -> Type
-convertType = \case
-  Parser.TypeVariable id -> TypeVariable id
-  Parser.TypeApplication t1 t2 -> TypeApplication (convertType t1) (convertType t2)
-  Parser.Function d r -> Function (convertType d) (convertType r)
+convertType :: Parser.TypeExpr -> PolyType
+convertType parsedType = Forall (freeVariables monoType) monoType where
+  convertMonoType = \case
+    Parser.TypeVariable id -> TypeVariable id
+    Parser.TypeApplication t1 t2 -> TypeApplication (convertMonoType t1) (convertMonoType t2)
+    Parser.Function d r -> Function (convertMonoType d) (convertMonoType r)
+  monoType = convertMonoType parsedType
 
 program :: Parser.Program -> CompilerResult Expr
 program prog = do
