@@ -151,8 +151,8 @@ convertType parsedType = Forall (freeVariables monoType) monoType where
     Parser.Function d r -> Function (convertMonoType d) (convertMonoType r)
   monoType = convertMonoType parsedType
 
-program :: Parser.Program -> CompilerResult Expr
-program prog = do
+main :: Parser.Program -> CompilerResult Expr
+main prog = do
   defMap <- decsToDefs prog
   orderedDefs <- resolve defMap
   return $ assembleDefinitions orderedDefs
