@@ -18,6 +18,10 @@ data CompilerError
   | MissingDefinition
   | RecursiveDefinitions
   | NoMain
+  | TypeError
+  | CannotUnify Text Text
+  | OccursCheckFailed Text Text
+  | UnknownIdentifier Text
   deriving (Show)
 
 instance Applicative CompilerResult where

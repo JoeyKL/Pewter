@@ -13,6 +13,7 @@ import           Data.Monoid                hiding (Product, Sum)
 import           Data.Set                   (Set)
 import qualified Data.Set                   as S
 import qualified Data.Text                  as T
+import qualified Error
 
 
 newtype Substitution = Sub (Map Name MonoType)
@@ -99,8 +100,6 @@ bindVariableTo name monoType
   | name `S.member` freeVariables monoType = throw (OccursCheckFailed name monoType)
   | otherwise = return (Sub (M.singleton name monoType))
 
-
-
 fresh :: Infer MonoType
 fresh = drawFromSupply >>= \case
     Right name -> return (TypeVariable name)
@@ -115,6 +114,14 @@ fresh = drawFromSupply >>= \case
 
 extendEnv :: (Name, PolyType) -> Environment -> Environment
 extendEnv (name, polyType) (Env env) = Env (M.insert name polyType env)
+
+main :: Expr -> Error.CompilerResult PolyType
+main expr = case runInfer (infer (Env M.empty) expr) of
+  Left (CannotUnify m1 m2) -> Error.Failure (Error.CannotUnify (T.pack $ show m1) (T.pack $ show m2))
+  Left (OccursCheckFailed x m) -> Error.Failure (Error.OccursCheckFailed x (T.pack $ show m))
+  Left (UnknownIdentifier x) -> Error.Failure (Error.UnknownIdentifier x)
+  Right (_, mType) -> Error.Success (Forall (freeVariables mType) mType)
+
 
 infer :: Environment -> Expr -> Infer (Substitution, MonoType)
 infer env = \case
