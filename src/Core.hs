@@ -131,8 +131,8 @@ convertType = \case
   Parser.TypeApplication t1 t2 -> TypeApplication (convertType t1) (convertType t2)
   Parser.Function d r -> Function (convertType d) (convertType r)
 
-program :: Parser.Program -> CompilerResult Expr
-program prog = do
+main :: Parser.Program -> CompilerResult Expr
+main prog = do
   defMap <- decsToDefs prog
   orderedDefs <- resolve defMap
   return $ assembleDefinitions orderedDefs
