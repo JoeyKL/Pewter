@@ -22,6 +22,7 @@ data CompilerError
   | CannotUnify Text Text
   | OccursCheckFailed Text Text
   | UnknownIdentifier Text
+  | IFuckedUp
   deriving (Show)
 
 instance Applicative CompilerResult where

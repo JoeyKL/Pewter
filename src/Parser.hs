@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TypeFamilies      #-}
 
 module Parser where
@@ -20,6 +21,7 @@ import qualified Token
 type Parser a = Megaparsec.Parsec Megaparsec.Dec [SourceToken] a
 
 data Program = Program [Declaration]
+  deriving (Show)
 
 data Declaration
   = ValueDeclaration Identifier Expr
@@ -41,6 +43,17 @@ data Expr
   | Application Expr Expr
   | Variable Identifier
   | LetClause [LetStatement] Expr
+  | MatchClause Expr [Case]
+  | Literal Literal
+  | Construction Identifier [Expr]
+  deriving (Show)
+
+data Case = Case Identifier [Identifier] Expr
+  deriving (Show)
+
+data Literal
+  = Integer Integer
+  | Boolean Bool
   deriving (Show)
 
 data LetStatement = LetStatement Identifier Expr
@@ -127,7 +140,25 @@ expr = makeExprParser (choice
   ,variable
   ,letClause
   ,expr `enclosedBy` Token.Paren
+  ,integerLiteral
+  ,booleanLiteral
+  ,matchClause
+  ,construction
   ]) [[InfixL (return Application)]]
+
+integerLiteral :: Parser Expr
+integerLiteral = satisfy isInt
+  where
+    isInt (Token.IntegerLiteral x) = Just (Literal (Integer x))
+    isInt _                        = Nothing
+
+booleanLiteral :: Parser Expr
+booleanLiteral = satisfy isBool
+  where
+    isBool (Token.BooleanLiteral True)  = Just (Literal (Boolean True))
+    isBool (Token.BooleanLiteral False) = Just (Literal (Boolean False))
+    isBool _                            = Nothing
+
 
 enclosedBy :: Parser a -> (Token.BracketKind -> Token.Token) -> Parser a
 enclosedBy parser bracket = between (match $ bracket Token.Open) (match $ bracket Token.Close) parser
@@ -152,12 +183,39 @@ lambda = do
   value <- expr
   return $ Lambda parameters value
 
+construction :: Parser Expr
+construction = do
+  name <- satisfy (\case
+    Token.Constructor t -> Just t
+    _ -> Nothing
+    )
+  args <- many expr
+  return $ Construction name args
+
 letClause :: Parser Expr
 letClause = letBody `enclosedBy` Token.Brace where
   letBody = do
-    statements <- endBy letStatement (match Token.Semicolon)
+    statements <- letStatement `endBy` match Token.Semicolon
     value <- expr
     return $ LetClause statements value
+
+matchClause :: Parser Expr
+matchClause = do
+  match Token.Match
+  targetExpr <- expr `enclosedBy` Token.Paren
+  cases <- (caseClause `endBy` (match Token.Semicolon)) `enclosedBy` Token.Brace
+  return $ MatchClause targetExpr cases
+
+caseClause :: Parser Case
+caseClause = do
+  name <- satisfy (\case
+    Token.Constructor t -> Just t
+    _ -> Nothing
+    )
+  bindings <- many identifier
+  match Token.Arrow
+  expr <- expr
+  return $ Case name bindings expr
 
 letStatement :: Parser LetStatement
 letStatement = do

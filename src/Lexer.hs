@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Lexer where
 
 import           Control.Monad         (void)
@@ -5,6 +7,7 @@ import           Data.Functor
 import qualified Data.Text             as T
 import           Error
 --import           Text.Megaparsec
+import           Data.Char
 import           Text.Megaparsec       hiding (Token, token)
 import           Text.Megaparsec.Char
 import           Text.Megaparsec.Expr
@@ -99,5 +102,11 @@ semicolon :: Parser Token
 semicolon = Semicolon <$ string ";"
 
 reservedWords :: String -> Token
-reservedWords "let" = Let
-reservedWords word  = Identifier $ T.pack word
+reservedWords = \case
+  "let"   -> Let
+  "True"  -> BooleanLiteral True
+  "False" -> BooleanLiteral False
+  "match" -> Match
+  word
+    | all isUpper word -> Constructor $ T.pack word
+    | otherwise -> Identifier $ T.pack word

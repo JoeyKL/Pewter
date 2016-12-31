@@ -4,11 +4,16 @@ import           Data.Text
 import           Text.Megaparsec.Pos
 
 data SourceToken = SourceToken Token (SourcePos, SourcePos)
-  deriving (Show, Eq, Ord)
+  deriving (Eq, Ord)
+
+instance Show SourceToken where
+  show (SourceToken s (_,_)) = show s
 
 data Token
   = Identifier Text
+  | Constructor Text
   | IntegerLiteral Integer
+  | BooleanLiteral Bool
   | Paren BracketKind
   | Brace BracketKind
   | Equals
@@ -19,6 +24,7 @@ data Token
   | Arrow
   | Let
   | Semicolon
+  | Match
   deriving (Show, Eq, Ord)
 
 data BracketKind

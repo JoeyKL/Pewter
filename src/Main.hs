@@ -1,6 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import qualified Core
+import qualified Data.Map
 import qualified Data.Text   as T
 import qualified Error
 import qualified Lexer
@@ -15,5 +18,6 @@ compile source = do
   tokens <- Lexer.main source
   ast <- Parser.main tokens
   core <- Core.main ast
-  TypeChecker.main core
   return core
+
+eval x = Core.eval Data.Map.empty <$> compile (T.pack x)

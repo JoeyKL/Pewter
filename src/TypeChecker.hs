@@ -1,5 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
 module TypeChecker where
 
@@ -31,8 +32,6 @@ instance Substitutable MonoType where
   applySub (Sub s) (TypeVariable n) = M.findWithDefault (TypeVariable n) n s
   applySub sub     (TypeBuiltin c)  = TypeBuiltin c
   applySub sub     (Function f x)   = Function (applySub sub f) (applySub sub x)
-  applySub sub     (Product a b)    = Product (applySub sub a) (applySub sub b)
-  applySub sub     (Sum a b)        = Sum (applySub sub a) (applySub sub b)
 
 instance Substitutable PolyType where
   applySub (Sub subst) (Forall qs mType) =
@@ -83,8 +82,6 @@ unify = \case
   (TypeVariable v, x)                     -> v `bindVariableTo` x
   (x, TypeVariable v)                     -> v `bindVariableTo` x
   (TypeBuiltin a, TypeBuiltin b) | a == b -> return mempty
-  (Sum a b, Sum x y)                      -> unifyBinary (a,b) (x,y)
-  (Product a b, Product x y)              -> unifyBinary (a,b) (x,y)
   (a, b)                                  -> throw (CannotUnify a b)
 
 unifyBinary :: (MonoType, MonoType) -> (MonoType, MonoType) -> Infer Substitution
@@ -128,6 +125,35 @@ infer env = \case
   Variable name -> inferVar env name
   Application f x -> inferApp env f x
   Lambda e1 e2 -> inferLam env e1 e2
+  --Typed e p -> inferTyp env e p
+  Literal l -> inferLit env l
+  --MatchClause e cases -> inferMat env e cases
+  --Construction name es -> inferCon env name es
+
+{-
+
+inferMat :: Environment -> Expr -> [Case] -> Infer (Substitution, MonoType)
+inferMat env e cases = undefined
+
+inferCon :: Environment -> Name -> [Expr] -> Infer (Substitution, MonoType)
+inferCon env name es = do
+  let fold (subT, types) (subNew, typeNew) = (applySub subT subNew, (applySub subT typeNew):typs)
+  (subs, params) <- sequence (foldr fold (map (infer env) es))
+  return (mempty, TypeConstructs $ Construct name params |: [])
+-}
+
+{-
+inferTyp :: Environment -> Expr -> PolyType -> Infer (Substitution, MonoType)
+inferTyp env e p = do
+  (s1, tau1) <- infer env e
+  tau2 <- instantiate p
+  s2 <- unify (tau1,tau2)
+  return $ s1 <> s2
+-}
+
+inferLit :: Environment -> Literal -> Infer (Substitution, MonoType)
+inferLit env (Integer _ ) = return (mempty, TypeBuiltin "Int")
+inferLit env (Boolean _ ) = return (mempty, TypeBuiltin "Bool")
 
 inferVar :: Environment -> Name -> Infer (Substitution, MonoType)
 inferVar env name = do
