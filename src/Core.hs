@@ -62,7 +62,7 @@ data Case = Case Name [Name] Expr
 
 eval :: Map Name Value -> Expr -> Value
 eval env x = let
-  fuck = \case
+  ev = \case
     Lambda name body -> Fun name (M.delete name env) body
     Application e1 e2 -> case eval env e1 of
       Fun name bindings body -> eval (M.insert name (eval env e2) (M.union bindings env)) body
@@ -89,7 +89,7 @@ eval env x = let
       Fun _ _ _ -> RuntimeError "Cannot match a function"
       err -> err
     Construction name es -> Con name (fmap (eval env) es)
-  val = fuck x
+  val = ev x
   in if doTrace then trace ("env: " <> show (L.map (\(a,b) -> (a,T.unpack $ beaut b)) $ M.toList env) <> " val: " <> (T.unpack $ pretty x)) val
     else val
 
