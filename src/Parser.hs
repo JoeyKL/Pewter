@@ -83,7 +83,10 @@ satisfy f = Prim.token testToken Nothing
         Nothing -> Left (Set.singleton (Tokens (sourceToken:|[])), Set.empty, Set.empty)
 
 main :: [SourceToken] -> Error.CompilerResult Program
-main source = case parse program "Input tokens" source of
+main = parseAny program
+
+parseAny :: Parser a -> [SourceToken] -> Error.CompilerResult a
+parseAny parser source = case parse parser "Input tokens" source of
   Left err     -> Error.Failure (Error.ParseError err)
   Right result -> Error.Success result
 

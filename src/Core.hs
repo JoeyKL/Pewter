@@ -125,6 +125,7 @@ instance Free PolyType where
     S.difference (freeVariables monoType) names
 
 data Definition = Definition Name Expr
+  deriving (Show)
 
 class Free f where
   freeVariables :: f -> Set Name
@@ -147,7 +148,7 @@ instance Free Definition where
 
 resolve :: Map Name Expr -> CompilerResult [Definition]
 resolve defs = do
-  namesOrdered <- orderDependencies defs (keys defs) [] []
+  namesOrdered <- nodeThenDependencies defs "main" [] []
   mapM normalize (fmap (\n -> Definition n <$> M.lookup n defs) namesOrdered)
     where
       normalize (Just x) = Success x
@@ -193,6 +194,9 @@ decsToDefs (Parser.Program decs) = do
     normalize (Left expr) = Success expr
     normalize (Right _)   = Failure MissingDefinition
 
+simpleDecsToDefs :: Parser.Program -> [Definition]
+simpleDecsToDefs
+
 applyTypes :: [PolyType] -> Expr -> Expr
 applyTypes ts e = L.foldr (flip Typed) e ts
 
@@ -236,5 +240,6 @@ convertType parsedType = Forall (freeVariables monoType) monoType where
 main :: Parser.Program -> CompilerResult Expr
 main prog = do
   defMap <- decsToDefs prog
-  orderedDefs <- L.reverse <$> resolve defMap
+  orderedDefs <- resolve defMap
+  return $ trace (show orderedDefs) ()
   return $ assembleDefinitions orderedDefs

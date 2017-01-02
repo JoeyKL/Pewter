@@ -9,9 +9,13 @@ import qualified Error
 import qualified Lexer
 import qualified Parser
 import qualified TypeChecker
+import System.IO
 
-main :: IO ()
-main = putStrLn "Yes, this the Pewter compiler, no, it doesn't work yet."
+main :: String -> IO ()
+main file =
+  source <- readFile file
+  let result = eval source
+  putStrLn $ show result
 
 compile :: T.Text -> Error.CompilerResult Core.Expr
 compile source = do
@@ -20,4 +24,5 @@ compile source = do
   core <- Core.main ast
   return core
 
+eval :: String -> Error.CompilerResult Core.Value
 eval x = Core.eval Data.Map.empty <$> compile (T.pack x)
